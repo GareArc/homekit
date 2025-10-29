@@ -23,12 +23,18 @@ RUN mkdir -p "$GOPATH"
 # install golangci-lint
 RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
-# user
+# user (create only when missing to avoid conflicts with base images)
 ARG USERNAME=dev
 ARG UID=1000
 ARG GID=1000
-RUN groupadd --gid ${GID} ${USERNAME} \
- && useradd --uid ${UID} --gid ${GID} -m -s /bin/bash ${USERNAME}
+RUN if ! getent group "${GID}" >/dev/null; then \
+      groupadd --gid "${GID}" "${USERNAME}"; \
+    fi \
+ && if ! id -u "${USERNAME}" >/dev/null 2>&1; then \
+      useradd --uid "${UID}" --gid "${GID}" -m -s /bin/bash "${USERNAME}"; \
+    else \
+      usermod --uid "${UID}" --gid "${GID}" "${USERNAME}"; \
+    fi
 USER ${USERNAME}
 
 WORKDIR /work
