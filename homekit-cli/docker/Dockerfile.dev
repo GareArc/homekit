@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1.7
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# base packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl wget gnupg git xz-utils unzip pkg-config \
+    build-essential bash-completion \
+ && rm -rf /var/lib/apt/lists/*
+
+# install go
+ARG GO_VERSION=1.23.2
+RUN arch=$(dpkg --print-architecture) \
+ && curl -fsSL https://go.dev/dl/go${GO_VERSION}.linux-${arch}.tar.gz -o /tmp/go.tgz \
+ && rm -rf /usr/local/go && tar -C /usr/local -xzf /tmp/go.tgz \
+ && rm /tmp/go.tgz
+ENV GOPATH=/go
+ENV PATH=/usr/local/go/bin:/go/bin:$PATH
+RUN mkdir -p "$GOPATH"
+
+# install golangci-lint
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# user
+ARG USERNAME=dev
+ARG UID=1000
+ARG GID=1000
+RUN groupadd --gid ${GID} ${USERNAME} \
+ && useradd --uid ${UID} --gid ${GID} -m -s /bin/bash ${USERNAME}
+USER ${USERNAME}
+
+WORKDIR /work
+CMD ["bash"]

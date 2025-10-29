@@ -1,0 +1,23 @@
+# Build artifacts
+dist/
+bin/
+build/
+out/
+
+# Test outputs
+coverage.out
+*.coverprofile
+
+# Logs & temp files
+*.log
+*.tmp
+*.swp
+
+# IDE metadata
+.idea/
+.vscode/
+*.code-workspace
+
+# OS-generated
+.DS_Store
+Thumbs.db

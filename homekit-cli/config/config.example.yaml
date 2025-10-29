@@ -1,0 +1,5 @@
+asset_overrides: ~/.config/homekit/assets
+plugin_paths:
+  - ~/.local/share/homekit/plugins
+temp_dir: /tmp/homekit
+log_level: info
