@@ -25,25 +25,25 @@ type WorkspaceOptions struct {
 
 func NewWorkspaceCommand() *cobra.Command {
 	root := &cobra.Command{
-		Use:   "workspace [new]",
+		Use:   "workspace",
 		Short: "Manage workspaces",
 	}
 
-	newCmd := &cobra.Command{
-		Use:   "new -d <directory> -n <name> -t <type>",
+	root.AddCommand(newWorkspaceNewCommand())
+	return root
+}
+
+func newWorkspaceNewCommand() *cobra.Command {
+	var dirStr, name, imageType string
+
+	cmd := &cobra.Command{
+		Use:   "new",
 		Short: "Create a new workspace with the given language base",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rt, err := runtimeFrom(cmd)
 			if err != nil {
 				return err
 			}
-
-			imageType, _ := cmd.Flags().GetString("t")
-			if imageType == "" {
-				imageType = "default"
-			}
-			dirStr, _ := cmd.Flags().GetString("d")
-			name, _ := cmd.Flags().GetString("n")
 
 			if !slices.Contains(imageTypes, imageType) {
 				return fmt.Errorf("invalid image type: %s. Please choose from %s", imageType, strings.Join(imageTypes, ", "))
@@ -63,15 +63,13 @@ func NewWorkspaceCommand() *cobra.Command {
 			rt.Logger.Info().Msgf("Workspace created successfully in %s", workspaceDir)
 			return nil
 		},
-		Args: cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
 	}
 
-	newCmd.Flags().StringP("dir", "d", ".", "Directory to create the workspace in")
-	newCmd.Flags().StringP("name", "n", "", "Name of the workspace")
-	newCmd.Flags().StringP("type", "t", "default", "Type of the workspace")
+	cmd.Flags().StringVarP(&dirStr, "dir", "d", ".", "Directory to create the workspace in")
+	cmd.Flags().StringVarP(&name, "name", "n", "", "Name of the workspace")
+	cmd.Flags().StringVarP(&imageType, "type", "t", "default", "Type of the workspace")
 
-	root.AddCommand(newCmd)
-	return root
+	return cmd
 }
 
 /*
