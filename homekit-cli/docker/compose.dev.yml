@@ -5,8 +5,8 @@ services:
       dockerfile: docker/Dockerfile.dev
     image: ${IMAGE:-garethcxy/homekit-cli-dev}:${TAG:-latest}
     volumes:
-      - ..:/work
+      - ../../:/work
       - ~/.gitconfig:/home/dev/.gitconfig:ro
-    working_dir: /work/homekit-cli
+    working_dir: /work
     tty: true
     stdin_open: true
