@@ -63,7 +63,6 @@ func NewWorkspaceCommand() *cobra.Command {
 			rt.Logger.Info().Msgf("Workspace created successfully in %s", workspaceDir)
 			return nil
 		},
-		Args: cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
 	}
 
 	newCmd.Flags().StringP("dir", "d", ".", "Directory to create the workspace in")
