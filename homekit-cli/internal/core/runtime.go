@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
+	"github.com/homekit/homekit-cli/internal/util/bufutil"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -34,6 +35,7 @@ type Runtime struct {
 	Logger  zerolog.Logger
 	Version VersionInfo
 	DryRun  bool
+	BufPool *bufutil.Pool
 }
 
 // VersionInfo carries build metadata injected at link-time.
@@ -99,12 +101,15 @@ func Bootstrap(parent context.Context, opts Options, version VersionInfo) (*Runt
 		return nil, err
 	}
 
+	bufPool := bufutil.NewPool(1024, 1024*1024)
+
 	rt := &Runtime{
 		Context: ctx,
 		Config:  cfg,
 		Logger:  logger,
 		Version: normalizeVersion(version),
 		DryRun:  opts.DryRun,
+		BufPool: bufPool,
 	}
 
 	rt.Context = WithRuntime(ctx, rt)

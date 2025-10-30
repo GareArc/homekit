@@ -10,3 +10,15 @@ import (
 func Embedded() fs.FS {
 	return embeddedassets.FS
 }
+
+type AssetNamespace string
+
+const (
+	AssetNamespaceScripts    AssetNamespace = "scripts"
+	AssetNamespaceTemplates  AssetNamespace = "templates"
+	AssetNamespaceWorkspaces AssetNamespace = "workspaces"
+)
+
+func (a AssetNamespace) String() string {
+	return string(a)
+}

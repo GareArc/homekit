@@ -79,6 +79,16 @@ func (m *Manager) Open(namespace, name string) (fs.File, error) {
 	return m.embedded.Open(filepath.ToSlash(filepath.Join(namespace, name)))
 }
 
+// OpenBytes returns the content of an asset as a byte slice.
+func (m *Manager) OpenBytes(namespace, name string) ([]byte, error) {
+	src, err := m.Open(namespace, name)
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+	return io.ReadAll(src)
+}
+
 // Export copies the asset to the destination directory.
 func (m *Manager) Export(namespace, name, destDir string) (string, error) {
 	src, err := m.Open(namespace, name)

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"time"
 
@@ -148,12 +147,4 @@ func parseEnv(values []string) map[string]string {
 
 func overrideDirectory(cfg core.Config) string {
 	return cfg.AssetOverrides
-}
-
-func runtimeFrom(cmd *cobra.Command) (*core.Runtime, error) {
-	rt, ok := core.FromContext(cmd.Context())
-	if !ok {
-		return nil, errors.New("runtime unavailable")
-	}
-	return rt, nil
 }

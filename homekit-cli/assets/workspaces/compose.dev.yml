@@ -1,0 +1,8 @@
+services:
+  {{ .name }}:
+    image: garethcxy/hk-dev:{{ .type }}
+    container_name: {{ .name }}-dev
+    volumes:
+      - ./code:/root/code
+    tty: true
+    stdin_open: true
