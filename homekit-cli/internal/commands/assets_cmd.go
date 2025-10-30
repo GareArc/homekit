@@ -17,7 +17,7 @@ func NewAssetsCommand() *cobra.Command {
 	}
 
 	listCmd := &cobra.Command{
-		Use:   "list [scripts|templates]",
+		Use:   "list [scripts|templates|workspaces]",
 		Args:  cobra.ExactArgs(1),
 		Short: "List available assets by namespace",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -26,7 +26,7 @@ func NewAssetsCommand() *cobra.Command {
 	}
 
 	extractCmd := &cobra.Command{
-		Use:   "extract [scripts|templates] <name> <dest>",
+		Use:   "extract [scripts|templates|workspaces] <name> <dest>",
 		Args:  cobra.ExactArgs(3),
 		Short: "Extract an asset to a directory",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +35,7 @@ func NewAssetsCommand() *cobra.Command {
 	}
 
 	verifyCmd := &cobra.Command{
-		Use:   "verify [scripts|templates] <name>",
+		Use:   "verify [scripts|templates|workspaces] <name>",
 		Args:  cobra.ExactArgs(2),
 		Short: "Calculate a checksum for an asset",
 		RunE: func(cmd *cobra.Command, args []string) error {

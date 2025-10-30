@@ -1,4 +1,4 @@
-# Workspace {{ .name }}
+# Workspace {{ .Name }}
 
 ## How to use
 Then start your development container with:

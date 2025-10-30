@@ -43,12 +43,12 @@ go.generate: ## Run code generation hooks
 .PHONY: go.build
 go.build: ## Build the CLI binary for the host platform
 	@mkdir -p $(BIN_DIR)
-	@$(GO) build -ldflags "$(LD_FLAGS)" -o $(BIN_DIR)/$(BIN) ./cmd/homekit
+	@$(GO) build -ldflags "$(LD_FLAGS)" -o $(BIN_DIR)/$(BIN) .
 	@echo "Binary available at $(BIN_DIR)/$(BIN)"
 
 .PHONY: go.run
 go.run: ## Run the CLI with the configured profile
-	@$(GO) run -ldflags "$(LD_FLAGS)" ./cmd/homekit --profile $(PROFILE) --log-level $(LOG_LEVEL) --log-format $(LOG_FORMAT)
+	@$(GO) run -ldflags "$(LD_FLAGS)" . --profile $(PROFILE) --log-level $(LOG_LEVEL) --log-format $(LOG_FORMAT)
 
 .PHONY: go.clean
 go.clean: ## Remove build artifacts

@@ -82,18 +82,13 @@ func Bootstrap(parent context.Context, opts Options, version VersionInfo) (*Runt
 		ctx = context.Background()
 	}
 
-	cfgPath := opts.ConfigPath
-	if cfgPath == "" {
-		defaultPath, err := DefaultConfigPath()
+	var cfg Config
+	var err error
+	if opts.ConfigPath != "" {
+		cfg, err = loadConfig(opts.ConfigPath)
 		if err != nil {
-			return nil, fmt.Errorf("determine config path: %w", err)
+			return nil, err
 		}
-		cfgPath = defaultPath
-	}
-
-	cfg, err := loadConfig(cfgPath)
-	if err != nil {
-		return nil, err
 	}
 
 	logger, err := configureLogger(opts)

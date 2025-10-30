@@ -1,7 +1,7 @@
 services:
-  {{ .name }}:
-    image: garethcxy/hk-dev:{{ .type }}
-    container_name: {{ .name }}-dev
+  {{ .Name }}:
+    image: garethcxy/hk-dev:{{ .Type }}
+    container_name: {{ .Name }}-dev
     volumes:
       - ./code:/root/code
     tty: true
