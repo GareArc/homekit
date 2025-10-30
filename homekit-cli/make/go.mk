@@ -32,6 +32,7 @@ go.lint: ## Run static analysis
 
 .PHONY: go.test
 go.test: ## Execute unit tests with coverage summary
+	@mkdir -p $(BIN_DIR)
 	@$(GO) test ./... -coverprofile=$(BIN_DIR)/coverage.out
 	@$(GO) tool cover -func=$(BIN_DIR)/coverage.out | tail -n 1
 

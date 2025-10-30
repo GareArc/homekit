@@ -1,4 +1,4 @@
-name: Build HomeKit CLI
+name: HomeKit CLI Sanity Check
 
 on:
     push:
