@@ -112,6 +112,68 @@ homekit assets extract templates docker-compose.yaml.tmpl ./out
 homekit template render docker-compose.yaml.tmpl --data values.yaml --output ./docker-compose.yaml
 ```
 
+### Programmatic Execution Examples
+
+Embedded scripts can be invoked directly from code without writing them to disk:
+
+```go
+import (
+    "fmt"
+    "time"
+
+    "github.com/homekit/homekit-cli/internal/assets"
+    "github.com/homekit/homekit-cli/internal/shell"
+)
+
+mgr := assets.NewManager(assets.Embedded(), overrideDirectory(rt.Config))
+rc, err := mgr.Open("scripts", "docker_prune_safe.sh")
+if err != nil {
+    return fmt.Errorf("open embedded script: %w", err)
+}
+defer rc.Close()
+
+result, err := shell.Run(ctx, "docker_prune_safe.sh", rc, shell.Options{
+    Args:          []string{"--dry-run"},
+    Env:           map[string]string{"PRUNE_CONFIRM": "true"},
+    Dir:           "/tmp",
+    Timeout:       30 * time.Second,
+    CaptureOutput: true,
+})
+if err != nil {
+    return err
+}
+fmt.Print(result.Stdout)
+```
+
+When dispatching a single local command (or a script with a shebang), use the process runner:
+
+```go
+import (
+    "context"
+    "fmt"
+    "os/exec"
+    "time"
+
+    executor "github.com/homekit/homekit-cli/internal/exec"
+)
+
+if _, err := exec.LookPath("git"); err != nil {
+    return fmt.Errorf("git not installed: %w", err)
+}
+
+res, err := executor.Run(ctx, executor.Spec{
+    Command:       "git",
+    Args:          []string{"status", "--short"},
+    Dir:           "/path/to/repo",
+    Timeout:       10 * time.Second,
+    CaptureOutput: true,
+})
+if err != nil {
+    return err
+}
+fmt.Print(res.Stdout)
+```
+
 ## Plugin Workflows
 
 Plugins are external executables discoverable on `$PATH` (and any additional directories in `plugin_paths`) that start with the prefix `homekit-cli-` by default.
@@ -161,4 +223,3 @@ Run `GOFLAGS='-tags=integration'` (or similar) to forward extra flags through th
 6. Attach artefacts to a GitHub release or allow CI to publish them.
 
 The `dist.release` target remains a placeholder for future CI automation (e.g. triggering a workflow that consumes the generated artefacts).
-
