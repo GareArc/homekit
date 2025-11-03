@@ -22,6 +22,11 @@ func NewSystemCommand() *cobra.Command {
 		Use:   "health",
 		Short: "Display basic system health information",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			rt, err := runtimeFrom(cmd)
+			if err != nil {
+				return err
+			}
+
 			memInfo, err := mem.VirtualMemory()
 			if err != nil {
 				return err
@@ -37,19 +42,13 @@ func NewSystemCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Time: %s\n", time.Now().Format(time.RFC3339))
-			fmt.Fprintf(cmd.OutOrStdout(), "OS: %s / %s\n", runtime.GOOS, runtime.GOARCH)
-			fmt.Fprintf(cmd.OutOrStdout(), "Memory: %.2f%% used (%.2f GiB / %.2f GiB)\n",
-				memInfo.UsedPercent,
-				float64(memInfo.Used)/1_073_741_824,
-				float64(memInfo.Total)/1_073_741_824,
-			)
-			fmt.Fprintf(cmd.OutOrStdout(), "Load Average: %.2f %.2f %.2f\n", loadAvg.Load1, loadAvg.Load5, loadAvg.Load15)
-			fmt.Fprintf(cmd.OutOrStdout(), "Disk: %.2f%% used (%.2f GiB / %.2f GiB)\n",
-				diskInfo.UsedPercent,
-				float64(diskInfo.Used)/1_073_741_824,
-				float64(diskInfo.Total)/1_073_741_824,
-			)
+			rt.Logger.Info().
+				Time("time", time.Now()).
+				Str("os", fmt.Sprintf("%s / %s", runtime.GOOS, runtime.GOARCH)).
+				Str("memory", fmt.Sprintf("%.2f%% used (%.2f GiB / %.2f GiB)", memInfo.UsedPercent, float64(memInfo.Used)/1_073_741_824, float64(memInfo.Total)/1_073_741_824)).
+				Str("load_average", fmt.Sprintf("%.2f %.2f %.2f", loadAvg.Load1, loadAvg.Load5, loadAvg.Load15)).
+				Str("disk", fmt.Sprintf("%.2f%% used (%.2f GiB / %.2f GiB)", diskInfo.UsedPercent, float64(diskInfo.Used)/1_073_741_824, float64(diskInfo.Total)/1_073_741_824)).
+				Msg("System health")
 			return nil
 		},
 	})
