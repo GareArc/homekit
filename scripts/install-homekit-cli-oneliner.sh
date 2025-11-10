@@ -13,7 +13,43 @@ BINARY_NAME="homekit"
 echo "Installing HomeKit CLI ${VERSION} for ${PLATFORM}..."
 
 mkdir -p "$INSTALL_DIR"
-curl -fsSL "https://github.com/GareArc/homekit/releases/download/${VERSION}/${BINARY_NAME}-${PLATFORM}" -o "${INSTALL_DIR}/${BINARY_NAME}"
+TEMP_FILE=$(mktemp)
+
+# For linux-amd64, use the 'homekit' binary directly (built by make build)
+# For other platforms, use the platform-specific binary
+if [ "$PLATFORM" = "linux-amd64" ]; then
+    DOWNLOAD_URL="https://github.com/GareArc/homekit/releases/download/${VERSION}/${BINARY_NAME}"
+else
+    DOWNLOAD_URL="https://github.com/GareArc/homekit/releases/download/${VERSION}/${BINARY_NAME}-${PLATFORM}"
+fi
+
+HTTP_CODE=$(curl -fsSL -o "$TEMP_FILE" -w "%{http_code}" "$DOWNLOAD_URL" 2>/dev/null || echo "000")
+if [ "$HTTP_CODE" != "200" ]; then
+    echo "❌ Failed to download binary (HTTP $HTTP_CODE)"
+    echo "   URL: $DOWNLOAD_URL"
+    echo "   This usually means the release asset doesn't exist for this version."
+    rm -f "$TEMP_FILE"
+    exit 1
+fi
+
+# Verify it's a valid binary
+if [ ! -s "$TEMP_FILE" ]; then
+    echo "❌ Downloaded file is empty"
+    rm -f "$TEMP_FILE"
+    exit 1
+fi
+
+if command -v file >/dev/null 2>&1; then
+    FILE_TYPE=$(file -b "$TEMP_FILE" 2>/dev/null || echo "")
+    if [[ ! "$FILE_TYPE" =~ (ELF|Mach-O|PE32|executable) ]]; then
+        echo "❌ Downloaded file is not a valid binary (type: $FILE_TYPE)"
+        echo "   This usually means the release asset doesn't exist."
+        rm -f "$TEMP_FILE"
+        exit 1
+    fi
+fi
+
+mv "$TEMP_FILE" "${INSTALL_DIR}/${BINARY_NAME}"
 chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
 
 echo "✅ HomeKit CLI installed to ${INSTALL_DIR}/${BINARY_NAME}"
