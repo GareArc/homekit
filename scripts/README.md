@@ -7,7 +7,7 @@ This directory contains installation scripts for the HomeKit CLI tool.
 The simplest way to install HomeKit CLI is using the one-liner script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/homekit/homekit-cli/main/scripts/install-homekit-cli.sh | bash
+curl -fsSL https://raw.githubusercontent.com/GareArc/homekit/main/scripts/install-homekit-cli.sh | bash
 ```
 
 ## Manual Installation
@@ -16,7 +16,7 @@ If you prefer to download and run the script manually:
 
 ```bash
 # Download the script
-curl -fsSL https://raw.githubusercontent.com/homekit/homekit-cli/main/scripts/install-homekit-cli.sh -o install-homekit-cli.sh
+curl -fsSL https://raw.githubusercontent.com/GareArc/homekit/main/scripts/install-homekit-cli.sh -o install-homekit-cli.sh
 
 # Make it executable
 chmod +x install-homekit-cli.sh
