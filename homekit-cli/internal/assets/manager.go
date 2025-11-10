@@ -80,8 +80,8 @@ func (m *Manager) Open(namespace, name string) (fs.File, error) {
 }
 
 // OpenBytes returns the content of an asset as a byte slice.
-func (m *Manager) OpenBytes(namespace, name string) ([]byte, error) {
-	src, err := m.Open(namespace, name)
+func (m *Manager) OpenBytes(namespace AssetNamespace, name string) ([]byte, error) {
+	src, err := m.Open(namespace.String(), name)
 	if err != nil {
 		return nil, err
 	}
