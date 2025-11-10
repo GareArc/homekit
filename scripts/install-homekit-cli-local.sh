@@ -12,9 +12,11 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default installation directory
+WORK_DIR="$(pwd)"
+
 INSTALL_DIR="${HOME}/.local/bin"
 BINARY_NAME="homekit"
-SOURCE_DIR="/work/homekit-cli/dist"
+SOURCE_DIR="$WORK_DIR/homekit-cli/dist"
 
 print_status() {
     echo -e "${BLUE}[INFO]${NC} $1"
