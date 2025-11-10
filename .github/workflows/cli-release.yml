@@ -22,7 +22,7 @@ jobs:
       packages: write
 
     env:
-      DOCKER_REGISTRY: dockerhub.com
+      DOCKER_REGISTRY: docker.io
       DOCKER_IMAGE_PREFIX: garethcxy
 
     steps:
