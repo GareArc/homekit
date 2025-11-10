@@ -70,8 +70,8 @@ jobs:
       - name: Create checksums
         run: |
           cd dist
-          for file in homekit-*; do
-              if [ -f "$file" ] && [ ! -f "${file}.sha256" ]; then
+          for file in *; do
+              if [ -f "$file" ] && [[ ! "$file" =~ \.sha256$ ]]; then
                   sha256sum "$file" > "${file}.sha256"
               fi
           done
@@ -79,9 +79,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/homekit-*
-            dist/*.sha256
+          files: dist/*
           generate_release_notes: true
           draft: false
           prerelease: false
