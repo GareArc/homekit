@@ -9,7 +9,7 @@ dist.package: ## Build cross-platform distributable binaries
 		binary_name="$(BIN)-$$goos-$$goarch"; \
 		if [ "$$goos" = "windows" ]; then binary_name="$$binary_name.exe"; fi; \
 		echo "Building $$platform"; \
-		GOOS=$$goos GOARCH=$$goarch $(GO) build -ldflags "$(LD_FLAGS)" -o $(DIST_DIR)/$$binary_name ./cmd/homekit; \
+		GOOS=$$goos GOARCH=$$goarch $(GO) build -ldflags "$(LD_FLAGS)" -o $(DIST_DIR)/$$binary_name .; \
 		checksum $(DIST_DIR)/$$binary_name > $(DIST_DIR)/$$binary_name.sha256; \
 	done
 

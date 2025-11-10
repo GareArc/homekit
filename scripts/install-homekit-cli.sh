@@ -82,22 +82,53 @@ install_binary() {
     mkdir -p "$install_dir"
     
     # Construct download URL
-    local download_url="https://github.com/${repo}/releases/download/${version}/${binary_name}-${platform}"
+    # For linux-amd64, use the 'homekit' binary directly (built by make build)
+    # For other platforms, use the platform-specific binary
+    local download_url
+    if [ "$platform" = "linux-amd64" ]; then
+        download_url="https://github.com/${repo}/releases/download/${version}/${binary_name}"
+    else
+        download_url="https://github.com/${repo}/releases/download/${version}/${binary_name}-${platform}"
+    fi
     
     print_status "Downloading ${binary_name} ${version} for ${platform}..."
     print_status "URL: ${download_url}"
     
     # Download the binary
     local temp_file=$(mktemp)
+    local http_code
     if command -v curl >/dev/null 2>&1; then
-        if ! curl -fsSL -o "$temp_file" "$download_url"; then
-            print_error "Failed to download binary from GitHub releases"
+        http_code=$(curl -fsSL -o "$temp_file" -w "%{http_code}" "$download_url" 2>/dev/null || echo "000")
+        if [ "$http_code" != "200" ]; then
+            print_error "Failed to download binary (HTTP $http_code). URL may be incorrect or release asset missing."
+            print_error "Expected: ${download_url}"
             rm -f "$temp_file"
             exit 1
         fi
     elif command -v wget >/dev/null 2>&1; then
-        if ! wget -qO "$temp_file" "$download_url"; then
+        if ! wget -qO "$temp_file" "$download_url" 2>/dev/null; then
             print_error "Failed to download binary from GitHub releases"
+            rm -f "$temp_file"
+            exit 1
+        fi
+    fi
+    
+    # Verify downloaded file is a valid binary
+    if [ ! -s "$temp_file" ]; then
+        print_error "Downloaded file is empty"
+        rm -f "$temp_file"
+        exit 1
+    fi
+    
+    # Check if file is a valid binary (ELF, Mach-O, or PE)
+    if command -v file >/dev/null 2>&1; then
+        local file_type=$(file -b "$temp_file" 2>/dev/null || echo "")
+        if [[ ! "$file_type" =~ (ELF|Mach-O|PE32|executable) ]]; then
+            print_error "Downloaded file is not a valid binary. File type: ${file_type}"
+            print_error "This usually means the release asset doesn't exist or the URL is incorrect."
+            print_error "First 100 bytes of downloaded file:"
+            head -c 100 "$temp_file" | cat -A
+            echo
             rm -f "$temp_file"
             exit 1
         fi
