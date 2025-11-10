@@ -1,6 +1,6 @@
 #!/bin/bash
 # HomeKit CLI Installation Script
-# One-line installation: curl -fsSL https://raw.githubusercontent.com/homekit/homekit-cli/main/scripts/install-homekit-cli.sh | bash
+# One-line installation: curl -fsSL https://raw.githubusercontent.com/GareArc/homekit/main/scripts/install-homekit-cli.sh | bash
 
 set -euo pipefail
 
@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 # Default installation directory
 INSTALL_DIR="${HOME}/.local/bin"
 BINARY_NAME="homekit"
-REPO="homekit/homekit-cli"
+REPO="GareArc/homekit"
 
 # Function to print colored output
 print_status() {
