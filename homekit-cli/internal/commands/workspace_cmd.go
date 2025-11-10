@@ -104,7 +104,7 @@ func createWorkspaceSkeleton(rt *core.Runtime, opts WorkspaceOptions) (string, e
 
 	// create README.md with template replacement
 	assetManager := assets.NewManager(assets.Embedded(), "")
-	readmeContent, err := assetManager.OpenBytes(assets.AssetNamespaceWorkspaces.String(), "README.md")
+	readmeContent, err := assetManager.OpenBytes(assets.AssetNamespaceWorkspaces, "README.md")
 	if err != nil {
 		return "", err
 	}
@@ -129,7 +129,7 @@ func createWorkspaceSkeleton(rt *core.Runtime, opts WorkspaceOptions) (string, e
 	rt.Logger.Info().Msgf("Code directory created in %s", codeDir)
 
 	// create Makefile
-	makefileContent, err := assetManager.OpenBytes(assets.AssetNamespaceWorkspaces.String(), "Makefile")
+	makefileContent, err := assetManager.OpenBytes(assets.AssetNamespaceWorkspaces, "Makefile")
 	if err != nil {
 		return "", err
 	}
@@ -145,7 +145,7 @@ func createWorkspaceSkeleton(rt *core.Runtime, opts WorkspaceOptions) (string, e
 	rt.Logger.Info().Msgf("Makefile created in %s", makefilePath)
 
 	// create compose.dev.yml
-	composeDevContent, err := assetManager.OpenBytes(assets.AssetNamespaceWorkspaces.String(), "compose.dev.yml")
+	composeDevContent, err := assetManager.OpenBytes(assets.AssetNamespaceWorkspaces, "compose.dev.yml")
 	if err != nil {
 		return "", err
 	}
