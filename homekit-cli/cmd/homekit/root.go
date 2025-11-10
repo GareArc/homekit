@@ -81,7 +81,6 @@ It supports executing embedded scripts, rendering templates, and delegating to e
 	cmd.AddCommand(commands.NewScriptCommand())
 	cmd.AddCommand(commands.NewAssetsCommand())
 	cmd.AddCommand(commands.NewTemplateCommand())
-	cmd.AddCommand(commands.NewDockerCommand())
 	cmd.AddCommand(commands.NewSystemCommand())
 	cmd.AddCommand(commands.NewPluginCommand())
 	cmd.AddCommand(commands.NewWorkspaceCommand())

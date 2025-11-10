@@ -1,12 +1,12 @@
 package shell
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"mvdan.cc/sh/v3/expand"
@@ -14,28 +14,44 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
+const (
+	exitCodeUnknown  = -1
+	exitCodeTimeout  = 124
+	exitCodeCanceled = 125
+)
+
 // Options configures script execution via the embedded shell interpreter.
 type Options struct {
-	Args    []string
-	Env     map[string]string
-	Dir     string
-	Stdin   io.Reader
-	Stdout  io.Writer
-	Stderr  io.Writer
-	Timeout time.Duration
-	DryRun  bool
+	Args          []string
+	Env           map[string]string
+	Dir           string
+	Stdin         io.Reader
+	Stdout        io.Writer
+	Stderr        io.Writer
+	Timeout       time.Duration
+	DryRun        bool
+	CaptureOutput bool
+}
+
+// Result captures stdout/stderr and exit information from a shell script run.
+type Result struct {
+	Stdout   string
+	Stderr   string
+	ExitCode int
+	Duration time.Duration
 }
 
 // Run executes the shell script provided by reader using mvdan's interpreter.
-func Run(ctx context.Context, name string, reader io.Reader, opts Options) error {
+func Run(ctx context.Context, name string, reader io.Reader, opts Options) (Result, error) {
+	res := Result{}
 	if opts.DryRun {
-		return nil
+		return res, nil
 	}
 
 	parser := syntax.NewParser()
 	prog, err := parser.Parse(reader, name)
 	if err != nil {
-		return fmt.Errorf("parse script %s: %w", name, err)
+		return res, fmt.Errorf("parse script %s: %w", name, err)
 	}
 
 	ctx, cancel := withTimeout(ctx, opts.Timeout)
@@ -43,15 +59,29 @@ func Run(ctx context.Context, name string, reader io.Reader, opts Options) error
 
 	stdout := opts.Stdout
 	if stdout == nil {
-		stdout = os.Stdout
+		if opts.CaptureOutput {
+			stdout = io.Discard
+		} else {
+			stdout = os.Stdout
+		}
 	}
 	stderr := opts.Stderr
 	if stderr == nil {
-		stderr = os.Stderr
+		if opts.CaptureOutput {
+			stderr = io.Discard
+		} else {
+			stderr = os.Stderr
+		}
 	}
 	stdin := opts.Stdin
 	if stdin == nil {
 		stdin = os.Stdin
+	}
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	if opts.CaptureOutput {
+		stdout = io.MultiWriter(stdout, &stdoutBuf)
+		stderr = io.MultiWriter(stderr, &stderrBuf)
 	}
 
 	env := buildEnv(opts.Env)
@@ -67,13 +97,26 @@ func Run(ctx context.Context, name string, reader io.Reader, opts Options) error
 
 	runner, err := interp.New(options...)
 	if err != nil {
-		return fmt.Errorf("init interpreter: %w", err)
+		return res, fmt.Errorf("init interpreter: %w", err)
 	}
 
-	if err := runner.Run(ctx, prog); err != nil {
-		return normalizeError(err)
+	start := time.Now()
+	err = runner.Run(ctx, prog)
+	res.Duration = time.Since(start)
+
+	if opts.CaptureOutput {
+		res.Stdout = stdoutBuf.String()
+		res.Stderr = stderrBuf.String()
 	}
-	return nil
+
+	if err != nil {
+		exitCode, normErr := normalizeError(err)
+		res.ExitCode = exitCode
+		return res, normErr
+	}
+
+	res.ExitCode = 0
+	return res, nil
 }
 
 func buildEnv(overrides map[string]string) []string {
@@ -100,13 +143,17 @@ func withTimeout(ctx context.Context, timeout time.Duration) (context.Context, c
 	return context.WithTimeout(ctx, timeout)
 }
 
-func normalizeError(err error) error {
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return err
+func normalizeError(err error) (int, error) {
+	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		return exitCodeTimeout, err
+	case errors.Is(err, context.Canceled):
+		return exitCodeCanceled, err
 	}
-	// interpreter returns ExitStatusError with message like "exit status 1"
-	if strings.HasPrefix(err.Error(), "exit status ") {
-		return err
+
+	var status interp.ExitStatus
+	if errors.As(err, &status) {
+		return int(status), err
 	}
-	return fmt.Errorf("interpreter: %w", err)
+	return exitCodeUnknown, fmt.Errorf("interpreter: %w", err)
 }

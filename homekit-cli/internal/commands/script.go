@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -101,33 +100,34 @@ func runScript(cmd *cobra.Command, rt *core.Runtime, embeddedName string, spec e
 	}
 	defer handle.Close()
 
-	var stdoutBuf, stderrBuf bytes.Buffer
 	stdout := cmd.OutOrStdout()
 	stderr := cmd.ErrOrStderr()
-	if spec.CaptureOutput {
-		stdout = &stdoutBuf
-		stderr = &stderrBuf
+
+	runOpts := shell.Options{
+		Args:          spec.Args,
+		Env:           spec.Env,
+		Dir:           spec.Dir,
+		Stdin:         spec.Stdin,
+		Timeout:       spec.Timeout,
+		DryRun:        spec.DryRun,
+		CaptureOutput: spec.CaptureOutput,
+	}
+	if !spec.CaptureOutput {
+		runOpts.Stdout = stdout
+		runOpts.Stderr = stderr
 	}
 
-	if err := shell.Run(cmd.Context(), embeddedName, handle, shell.Options{
-		Args:    spec.Args,
-		Env:     spec.Env,
-		Dir:     spec.Dir,
-		Stdin:   spec.Stdin,
-		Stdout:  stdout,
-		Stderr:  stderr,
-		Timeout: spec.Timeout,
-		DryRun:  spec.DryRun,
-	}); err != nil {
+	res, err := shell.Run(cmd.Context(), embeddedName, handle, runOpts)
+	if err != nil {
 		return err
 	}
 
 	if spec.CaptureOutput {
-		if stdoutBuf.Len() > 0 {
-			fmt.Fprint(cmd.OutOrStdout(), stdoutBuf.String())
+		if res.Stdout != "" {
+			fmt.Fprint(cmd.OutOrStdout(), res.Stdout)
 		}
-		if stderrBuf.Len() > 0 {
-			fmt.Fprint(cmd.ErrOrStderr(), stderrBuf.String())
+		if res.Stderr != "" {
+			fmt.Fprint(cmd.ErrOrStderr(), res.Stderr)
 		}
 	}
 	return nil
